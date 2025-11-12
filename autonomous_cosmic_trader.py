@@ -49,21 +49,45 @@ class AutonomousCosmicTrader:
 
         # Trading configuration
         self.CHECK_INTERVAL = config.CHECK_INTERVAL_MINUTES * 60  # Convert to seconds
-        self.SYMBOLS = config.TRADING_SYMBOLS
-        self.BASE_POSITION_SIZE_USD = config.POSITION_SIZE_USD
         self.MAX_POSITIONS = config.MAX_OPEN_POSITIONS
         self.MIN_BALANCE_USD = config.MIN_BALANCE_USD
+        self.POSITION_SIZE_PERCENT = config.POSITION_SIZE_PERCENT
+
+        # Load trading symbols
+        if config.USE_ALL_SYMBOLS:
+            logger.info("🌟 Loading ALL available symbols from exchange...")
+            self.SYMBOLS = self._fetch_all_symbols()
+            logger.info(f"✓ Loaded {len(self.SYMBOLS)} cosmic trading symbols!")
+        else:
+            self.SYMBOLS = config.TRADING_SYMBOLS
+            logger.info(f"✓ Using manual symbol list: {len(self.SYMBOLS)} symbols")
 
         # Balance tracking
         self.last_balance = 0.0
-        self.current_position_size_usd = self.BASE_POSITION_SIZE_USD
+        self.current_position_size_usd = 0.0
 
         logger.info(f"✓ Connected to cosmic realm")
-        logger.info(f"✓ Trading symbols: {self.SYMBOLS}")
-        logger.info(f"✓ Base position size: ${self.BASE_POSITION_SIZE_USD}")
+        logger.info(f"✓ Position sizing: {self.POSITION_SIZE_PERCENT * 100}% of balance")
         logger.info(f"✓ Max positions: {self.MAX_POSITIONS}")
         logger.info(f"✓ Check interval: {config.CHECK_INTERVAL_MINUTES} minutes")
         logger.info(f"✓ Min balance threshold: ${self.MIN_BALANCE_USD}")
+
+    def _fetch_all_symbols(self):
+        """Fetch all available trading symbols from exchange"""
+        try:
+            exchange_info = self.dex.exchange_info()
+            symbols = exchange_info.get('symbols', [])
+
+            # Filter to only TRADING status and USDT pairs
+            trading_symbols = [
+                s.get('symbol') for s in symbols
+                if s.get('status') == 'TRADING' and 'USDT' in s.get('symbol', '')
+            ]
+
+            return trading_symbols
+        except Exception as e:
+            logger.error(f"Error fetching symbols, using fallback list: {e}")
+            return config.TRADING_SYMBOLS
 
     def get_balance(self):
         """Get available balance in ETH and USD equivalent"""
@@ -122,21 +146,18 @@ class AutonomousCosmicTrader:
             return self.last_balance
 
     def _adjust_position_size(self, usd_balance):
-        """Dynamically adjust position size based on available balance"""
-        # Scale position size with balance, but keep it reasonable
-        # Use 5-10% of balance per position
-        suggested_size = usd_balance * 0.08  # 8% of balance
+        """Dynamically adjust position size based on available balance - PURE FLOW"""
+        # Use configured percentage of balance
+        # No limits! Go with the cosmic flow! 🌊
+        suggested_size = usd_balance * self.POSITION_SIZE_PERCENT
 
-        # Keep it between $5 and $100 per position
-        suggested_size = max(5, min(100, suggested_size))
+        # Round to 2 decimal places for USD
+        suggested_size = round(suggested_size, 2)
 
-        # Round to nearest dollar
-        suggested_size = round(suggested_size)
-
-        if suggested_size != self.current_position_size_usd:
+        if abs(suggested_size - self.current_position_size_usd) > 0.10:  # Changed if different by >$0.10
             old_size = self.current_position_size_usd
             self.current_position_size_usd = suggested_size
-            logger.info(f"📊 Position size adjusted: ${old_size} → ${suggested_size} (based on ${usd_balance:.2f} balance)")
+            logger.info(f"📊 Position size adjusted: ${old_size:.2f} → ${suggested_size:.2f} ({self.POSITION_SIZE_PERCENT * 100}% of ${usd_balance:.2f})")
 
         return suggested_size
 
@@ -311,10 +332,10 @@ class AutonomousCosmicTrader:
                 logger.warning(f"   Skipping trade. Please deposit more funds.")
                 return False
 
-            # Check if we have enough for this position
-            if usd_balance < self.current_position_size_usd * 1.5:  # Need 1.5x for margin
-                logger.warning(f"⚠️  Balance too low for ${self.current_position_size_usd} position")
-                logger.warning(f"   Available: ${usd_balance:.2f}, Need: ${self.current_position_size_usd * 1.5:.2f}")
+            # Check if we have enough for this position (need at least 2x for margin safety)
+            if usd_balance < self.current_position_size_usd * 2:
+                logger.warning(f"⚠️  Balance too low for ${self.current_position_size_usd:.2f} position")
+                logger.warning(f"   Available: ${usd_balance:.2f}, Need: ${self.current_position_size_usd * 2:.2f}")
                 return False
 
             logger.info(f"🌟 Opening {side} position on {symbol}")
