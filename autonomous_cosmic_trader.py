@@ -19,16 +19,72 @@ import json
 import sys
 import traceback
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('cosmic_trader.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+# Setup logging with Windows-compatible encoding
+import platform
+
+# Configure file handler (UTF-8 for emojis)
+file_handler = logging.FileHandler('cosmic_trader.log', encoding='utf-8')
+file_handler.setLevel(logging.INFO)
+
+# Configure console handler (ASCII-safe for Windows)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+
+# On Windows, use ASCII-only format; on Unix, allow emojis
+if platform.system() == 'Windows':
+    # Windows-safe format without emojis
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+else:
+    # Unix can handle emojis
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Create logger
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+# Windows emoji compatibility
+IS_WINDOWS = platform.system() == 'Windows'
+
+class SafeLogger:
+    """Logger wrapper that strips emojis on Windows"""
+    def __init__(self, logger):
+        self._logger = logger
+
+    def _clean(self, msg):
+        if IS_WINDOWS and isinstance(msg, str):
+            # Remove emojis on Windows to prevent encoding errors
+            import re
+            # Remove all emoji characters
+            emoji_pattern = re.compile("["
+                u"\U0001F600-\U0001F64F"  # emoticons
+                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                u"\U0001F1E0-\U0001F1FF"  # flags
+                u"\U00002702-\U000027B0"
+                u"\U000024C2-\U0001F251"
+                "]+", flags=re.UNICODE)
+            return emoji_pattern.sub('', msg)
+        return msg
+
+    def info(self, msg, *args, **kwargs):
+        self._logger.info(self._clean(msg), *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        self._logger.warning(self._clean(msg), *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        self._logger.error(self._clean(msg), *args, **kwargs)
+
+    def debug(self, msg, *args, **kwargs):
+        self._logger.debug(self._clean(msg), *args, **kwargs)
+
+# Wrap logger for Windows compatibility
+logger = SafeLogger(logger)
 
 
 class AutonomousCosmicTrader:
@@ -152,16 +208,16 @@ class AutonomousCosmicTrader:
         # Use configured percentage of balance
         suggested_size = usd_balance * self.POSITION_SIZE_PERCENT
 
-        # AsterDEX requires minimum $5 per order
-        MIN_ORDER_SIZE = 5.0
+        # AsterDEX requires minimum $5 per order, use $5.50 to ensure we're safely above after rounding
+        MIN_ORDER_SIZE = 5.5
         if suggested_size < MIN_ORDER_SIZE and usd_balance >= MIN_ORDER_SIZE:
             # If we have enough balance but percentage is too low, use minimum
             suggested_size = MIN_ORDER_SIZE
-            logger.info(f"⚠️  Position size would be ${usd_balance * self.POSITION_SIZE_PERCENT:.2f}, but using minimum ${MIN_ORDER_SIZE}")
+            logger.info(f"WARNING: Position size would be ${usd_balance * self.POSITION_SIZE_PERCENT:.2f}, but using minimum ${MIN_ORDER_SIZE}")
         elif usd_balance < MIN_ORDER_SIZE:
             # Not enough balance for minimum order
             suggested_size = 0
-            logger.warning(f"⚠️  Balance ${usd_balance:.2f} is below minimum order size ${MIN_ORDER_SIZE}")
+            logger.warning(f"WARNING: Balance ${usd_balance:.2f} is below minimum order size ${MIN_ORDER_SIZE}")
         else:
             # Normal case - use percentage
             suggested_size = round(suggested_size, 2)
@@ -343,9 +399,9 @@ class AutonomousCosmicTrader:
                 logger.warning(f"   Skipping trade. Please deposit more funds.")
                 return False
 
-            # Check if position size is valid (minimum $5 for AsterDEX)
-            if self.current_position_size_usd < 5.0:
-                logger.warning(f"⚠️  Position size ${self.current_position_size_usd:.2f} is below minimum $5")
+            # Check if position size is valid (minimum $5.50 to ensure notional > $5 after rounding)
+            if self.current_position_size_usd < 5.5:
+                logger.warning(f"WARNING: Position size ${self.current_position_size_usd:.2f} is below minimum $5.50")
                 logger.warning(f"   Skipping trade. Need more balance or higher position % in config.")
                 return False
 
