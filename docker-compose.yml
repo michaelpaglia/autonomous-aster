@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  cosmic-trader:
+    build: .
+    container_name: cosmic-trader
+    restart: unless-stopped
+    volumes:
+      - ./cosmic_trader.log:/app/cosmic_trader.log
+      - ./config.py:/app/config.py
+    environment:
+      - TZ=UTC
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
