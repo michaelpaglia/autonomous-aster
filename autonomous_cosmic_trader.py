@@ -278,8 +278,21 @@ class AutonomousCosmicTrader:
                 reduceOnly=True
             )
 
-            logger.info(f"✅ Position closed: {symbol}")
-            logger.info(f"Order ID: {order.get('orderId')}")
+            # Get final PnL
+            final_pnl = float(position.get('unRealizedProfit', 0))
+
+            # Big notification for position closed
+            logger.info("="*60)
+            logger.info(f"🌙 ✨ POSITION CLOSED! ✨ 🌙")
+            logger.info(f"   Symbol: {symbol}")
+            logger.info(f"   Side: {side}")
+            logger.info(f"   Quantity: {quantity}")
+            logger.info(f"   Entry: ${position['entryPrice']}")
+            logger.info(f"   Exit: ${position['markPrice']}")
+            logger.info(f"   PnL: ${final_pnl:.2f} {'🎉' if final_pnl > 0 else '📉'}")
+            logger.info(f"   Reason: {reason}")
+            logger.info(f"   Order ID: {order.get('orderId')}")
+            logger.info("="*60)
 
             return True
 
@@ -337,8 +350,17 @@ class AutonomousCosmicTrader:
                 quantity=quantity
             )
 
-            logger.info(f"✅ Position opened: {symbol} {side}")
-            logger.info(f"Order ID: {order.get('orderId')}")
+            # Big notification for position opened
+            logger.info("="*60)
+            logger.info(f"🚀 ✨ POSITION OPENED! ✨ 🚀")
+            logger.info(f"   Symbol: {symbol}")
+            logger.info(f"   Direction: {side}")
+            logger.info(f"   Quantity: {quantity}")
+            logger.info(f"   Price: ${current_price}")
+            logger.info(f"   Value: ${self.current_position_size_usd}")
+            logger.info(f"   Order ID: {order.get('orderId')}")
+            logger.info(f"   Cosmic Reason: {reason}")
+            logger.info("="*60)
 
             return True
 
