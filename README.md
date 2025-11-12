@@ -58,7 +58,7 @@ Edit `config.py` to customize:
 
 ```python
 # How often to check for trades (in minutes)
-CHECK_INTERVAL_MINUTES = 30
+CHECK_INTERVAL_MINUTES = 5  # Cosmic vibes change fast!
 
 # Symbols to trade
 TRADING_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']
@@ -77,7 +77,7 @@ MAX_OPEN_POSITIONS = 3
 
 ### The Cosmic Trading Algorithm
 
-1. **Every 30 minutes** (configurable), the bot:
+1. **Every 5 minutes** (configurable), the bot:
    - Checks existing positions
    - Asks Grok about cosmic vibes for each position
    - Closes positions if stop-loss/take-profit hit or if cosmos says so
@@ -296,7 +296,11 @@ python test_official_connector.py
 
 Edit `config.py`:
 ```python
-CHECK_INTERVAL_MINUTES = 15  # Check every 15 minutes
+CHECK_INTERVAL_MINUTES = 1  # Check every minute (ultra responsive!)
+# or
+CHECK_INTERVAL_MINUTES = 5  # Every 5 minutes (balanced)
+# or
+CHECK_INTERVAL_MINUTES = 15  # Every 15 minutes (slower)
 ```
 
 ### Add More Symbols
