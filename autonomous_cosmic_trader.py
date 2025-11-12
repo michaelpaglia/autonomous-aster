@@ -122,6 +122,8 @@ class AutonomousCosmicTrader:
                 # First check
                 self.last_balance = usd_balance
                 logger.info(f"💰 Initial balance: {eth_balance:.4f} ETH (${usd_balance:.2f} USD)")
+                # Adjust position size on first run too!
+                self._adjust_position_size(usd_balance)
                 return usd_balance
 
             balance_diff = usd_balance - self.last_balance
@@ -148,16 +150,27 @@ class AutonomousCosmicTrader:
     def _adjust_position_size(self, usd_balance):
         """Dynamically adjust position size based on available balance - PURE FLOW"""
         # Use configured percentage of balance
-        # No limits! Go with the cosmic flow! 🌊
         suggested_size = usd_balance * self.POSITION_SIZE_PERCENT
 
-        # Round to 2 decimal places for USD
-        suggested_size = round(suggested_size, 2)
+        # AsterDEX requires minimum $5 per order
+        MIN_ORDER_SIZE = 5.0
+        if suggested_size < MIN_ORDER_SIZE and usd_balance >= MIN_ORDER_SIZE:
+            # If we have enough balance but percentage is too low, use minimum
+            suggested_size = MIN_ORDER_SIZE
+            logger.info(f"⚠️  Position size would be ${usd_balance * self.POSITION_SIZE_PERCENT:.2f}, but using minimum ${MIN_ORDER_SIZE}")
+        elif usd_balance < MIN_ORDER_SIZE:
+            # Not enough balance for minimum order
+            suggested_size = 0
+            logger.warning(f"⚠️  Balance ${usd_balance:.2f} is below minimum order size ${MIN_ORDER_SIZE}")
+        else:
+            # Normal case - use percentage
+            suggested_size = round(suggested_size, 2)
 
         if abs(suggested_size - self.current_position_size_usd) > 0.10:  # Changed if different by >$0.10
             old_size = self.current_position_size_usd
             self.current_position_size_usd = suggested_size
-            logger.info(f"📊 Position size adjusted: ${old_size:.2f} → ${suggested_size:.2f} ({self.POSITION_SIZE_PERCENT * 100}% of ${usd_balance:.2f})")
+            if suggested_size > 0:
+                logger.info(f"📊 Position size adjusted: ${old_size:.2f} → ${suggested_size:.2f} ({self.POSITION_SIZE_PERCENT * 100}% of ${usd_balance:.2f})")
 
         return suggested_size
 
@@ -209,23 +222,21 @@ class AutonomousCosmicTrader:
 
             response = self.grok.get_trading_decision(market_data, prompt)
 
-            # Parse response
-            lines = response.strip().split('\n')
-            decision = lines[0].strip().upper()
-            reason = ' '.join(lines[1:]) if len(lines) > 1 else "The cosmos has spoken."
+            # Parse response - search entire response for decision keywords
+            response_upper = response.upper()
 
-            # Extract decision
-            if 'LONG' in decision:
+            # Extract decision from anywhere in the response
+            if 'LONG' in response_upper and 'SHORT' not in response_upper:
                 action = 'LONG'
-            elif 'SHORT' in decision:
+            elif 'SHORT' in response_upper:
                 action = 'SHORT'
             else:
                 action = 'PASS'
 
             logger.info(f"✨ Cosmic Decision: {action}")
-            logger.info(f"✨ Reason: {reason}")
+            logger.info(f"✨ Reason: {response.strip()}")
 
-            return action, reason
+            return action, response.strip()
 
         except Exception as e:
             logger.error(f"Error consulting cosmos: {e}")
@@ -332,6 +343,12 @@ class AutonomousCosmicTrader:
                 logger.warning(f"   Skipping trade. Please deposit more funds.")
                 return False
 
+            # Check if position size is valid (minimum $5 for AsterDEX)
+            if self.current_position_size_usd < 5.0:
+                logger.warning(f"⚠️  Position size ${self.current_position_size_usd:.2f} is below minimum $5")
+                logger.warning(f"   Skipping trade. Need more balance or higher position % in config.")
+                return False
+
             # Check if we have enough for this position (need at least 2x for margin safety)
             if usd_balance < self.current_position_size_usd * 2:
                 logger.warning(f"⚠️  Balance too low for ${self.current_position_size_usd:.2f} position")
@@ -353,13 +370,17 @@ class AutonomousCosmicTrader:
             # Calculate quantity based on CURRENT position size (adjusted for balance)
             quantity = self.current_position_size_usd / current_price
 
-            # Round to appropriate decimal places
-            if symbol == 'BTCUSDT':
-                quantity = round(quantity, 3)
-            elif symbol == 'ETHUSDT':
-                quantity = round(quantity, 2)
+            # Smart rounding based on quantity size
+            if quantity >= 100:
+                quantity = round(quantity, 0)  # Round to whole numbers for large quantities
+            elif quantity >= 10:
+                quantity = round(quantity, 1)  # 1 decimal for medium quantities
+            elif quantity >= 1:
+                quantity = round(quantity, 2)  # 2 decimals for small quantities
+            elif quantity >= 0.1:
+                quantity = round(quantity, 3)  # 3 decimals for very small quantities
             else:
-                quantity = round(quantity, 1)
+                quantity = round(quantity, 4)  # 4 decimals for tiny quantities
 
             logger.info(f"Quantity: {quantity} at ${current_price}")
 
