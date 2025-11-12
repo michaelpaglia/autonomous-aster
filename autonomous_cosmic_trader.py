@@ -50,29 +50,95 @@ class AutonomousCosmicTrader:
         # Trading configuration
         self.CHECK_INTERVAL = config.CHECK_INTERVAL_MINUTES * 60  # Convert to seconds
         self.SYMBOLS = config.TRADING_SYMBOLS
-        self.POSITION_SIZE_USD = config.POSITION_SIZE_USD
+        self.BASE_POSITION_SIZE_USD = config.POSITION_SIZE_USD
         self.MAX_POSITIONS = config.MAX_OPEN_POSITIONS
-        self.STOP_LOSS_PERCENT = config.STOP_LOSS_PERCENT
-        self.TAKE_PROFIT_PERCENT = config.TAKE_PROFIT_PERCENT
+        self.MIN_BALANCE_USD = config.MIN_BALANCE_USD
+
+        # Balance tracking
+        self.last_balance = 0.0
+        self.current_position_size_usd = self.BASE_POSITION_SIZE_USD
 
         logger.info(f"✓ Connected to cosmic realm")
         logger.info(f"✓ Trading symbols: {self.SYMBOLS}")
-        logger.info(f"✓ Position size: ${self.POSITION_SIZE_USD}")
+        logger.info(f"✓ Base position size: ${self.BASE_POSITION_SIZE_USD}")
         logger.info(f"✓ Max positions: {self.MAX_POSITIONS}")
         logger.info(f"✓ Check interval: {config.CHECK_INTERVAL_MINUTES} minutes")
+        logger.info(f"✓ Min balance threshold: ${self.MIN_BALANCE_USD}")
 
     def get_balance(self):
-        """Get available balance"""
+        """Get available balance in ETH and USD equivalent"""
         try:
             balance_data = self.dex.balance()
             # Look for ETH balance (main trading asset)
+            eth_balance = 0.0
             for asset in balance_data:
                 if asset['asset'] == 'ETH':
-                    return float(asset['balance'])
-            return 0.0
+                    eth_balance = float(asset['balance'])
+                    break
+
+            # Get ETH price to calculate USD value
+            if eth_balance > 0:
+                eth_price_data = self.dex.ticker_price(symbol='ETHUSDT')
+                eth_price = float(eth_price_data['price'])
+                usd_value = eth_balance * eth_price
+                return eth_balance, usd_value
+
+            return eth_balance, 0.0
         except Exception as e:
             logger.error(f"Error getting balance: {e}")
-            return 0.0
+            return 0.0, 0.0
+
+    def check_and_adjust_for_balance_change(self):
+        """Check for balance changes and adjust position sizing"""
+        try:
+            eth_balance, usd_balance = self.get_balance()
+
+            # Detect balance changes
+            if self.last_balance == 0.0:
+                # First check
+                self.last_balance = usd_balance
+                logger.info(f"💰 Initial balance: {eth_balance:.4f} ETH (${usd_balance:.2f} USD)")
+                return usd_balance
+
+            balance_diff = usd_balance - self.last_balance
+
+            if abs(balance_diff) > 1.0:  # Significant change (>$1)
+                if balance_diff > 0:
+                    logger.info(f"💰 🎉 DEPOSIT DETECTED! +${balance_diff:.2f}")
+                    logger.info(f"   New balance: {eth_balance:.4f} ETH (${usd_balance:.2f} USD)")
+                else:
+                    logger.info(f"💰 ⚠️  WITHDRAWAL/LOSS DETECTED: ${balance_diff:.2f}")
+                    logger.info(f"   New balance: {eth_balance:.4f} ETH (${usd_balance:.2f} USD)")
+
+                # Adjust position sizing based on new balance
+                self._adjust_position_size(usd_balance)
+
+                self.last_balance = usd_balance
+
+            return usd_balance
+
+        except Exception as e:
+            logger.error(f"Error checking balance change: {e}")
+            return self.last_balance
+
+    def _adjust_position_size(self, usd_balance):
+        """Dynamically adjust position size based on available balance"""
+        # Scale position size with balance, but keep it reasonable
+        # Use 5-10% of balance per position
+        suggested_size = usd_balance * 0.08  # 8% of balance
+
+        # Keep it between $5 and $100 per position
+        suggested_size = max(5, min(100, suggested_size))
+
+        # Round to nearest dollar
+        suggested_size = round(suggested_size)
+
+        if suggested_size != self.current_position_size_usd:
+            old_size = self.current_position_size_usd
+            self.current_position_size_usd = suggested_size
+            logger.info(f"📊 Position size adjusted: ${old_size} → ${suggested_size} (based on ${usd_balance:.2f} balance)")
+
+        return suggested_size
 
     def get_open_positions(self):
         """Get all open positions"""
@@ -145,7 +211,7 @@ class AutonomousCosmicTrader:
             return 'PASS', "Cosmic connection disrupted"
 
     def check_exit_position(self, position):
-        """Ask cosmos if we should exit a position"""
+        """Ask cosmos if we should exit a position - PURE VIBES ONLY"""
         try:
             symbol = position['symbol']
             entry_price = float(position['entryPrice'])
@@ -156,24 +222,19 @@ class AutonomousCosmicTrader:
 
             logger.info(f"📊 Checking position: {symbol} PnL: ${pnl:.2f} ({pnl_percent:.2f}%)")
 
-            # Check stop loss / take profit
-            if pnl_percent <= -self.STOP_LOSS_PERCENT:
-                logger.warning(f"🛑 Stop loss hit for {symbol}: {pnl_percent:.2f}%")
-                return True, "Stop loss triggered"
-
-            if pnl_percent >= self.TAKE_PROFIT_PERCENT:
-                logger.info(f"🎯 Take profit hit for {symbol}: {pnl_percent:.2f}%")
-                return True, "Take profit triggered"
-
-            # Ask cosmos
+            # NO stop-loss or take-profit logic! Only ask the cosmos!
             prompt = f"""
             We have a position on {symbol}:
             Entry: ${entry_price}
             Current: ${current_price}
             PnL: ${pnl:.2f} ({pnl_percent:.2f}%)
 
-            Should we CLOSE this position or HOLD?
-            Be brief and mystical. Just say CLOSE or HOLD and a short reason.
+            What do the stars say? Should we CLOSE or HOLD?
+
+            Ignore profit/loss numbers - just read the cosmic energy.
+            Is the universe telling us to exit or stay?
+
+            Be brief and mystical. Just say CLOSE or HOLD and a short cosmic reason.
             """
 
             response = self.grok.quick_decision(prompt)
@@ -184,6 +245,7 @@ class AutonomousCosmicTrader:
                 logger.info(f"✨ Cosmos says: {response}")
                 return True, response
 
+            logger.info(f"✨ Holding based on vibes: {response}")
             return False, "Holding per cosmic guidance"
 
         except Exception as e:
@@ -228,8 +290,23 @@ class AutonomousCosmicTrader:
     def open_position(self, symbol, side, reason):
         """Open a new position"""
         try:
+            # Check balance before opening position
+            eth_balance, usd_balance = self.get_balance()
+
+            if usd_balance < self.MIN_BALANCE_USD:
+                logger.warning(f"⚠️  Insufficient balance: ${usd_balance:.2f} < ${self.MIN_BALANCE_USD} minimum")
+                logger.warning(f"   Skipping trade. Please deposit more funds.")
+                return False
+
+            # Check if we have enough for this position
+            if usd_balance < self.current_position_size_usd * 1.5:  # Need 1.5x for margin
+                logger.warning(f"⚠️  Balance too low for ${self.current_position_size_usd} position")
+                logger.warning(f"   Available: ${usd_balance:.2f}, Need: ${self.current_position_size_usd * 1.5:.2f}")
+                return False
+
             logger.info(f"🌟 Opening {side} position on {symbol}")
             logger.info(f"Reason: {reason}")
+            logger.info(f"Balance: {eth_balance:.4f} ETH (${usd_balance:.2f})")
 
             # Get current price
             market_data = self.get_market_data(symbol)
@@ -239,8 +316,8 @@ class AutonomousCosmicTrader:
 
             current_price = market_data['price']
 
-            # Calculate quantity based on position size
-            quantity = self.POSITION_SIZE_USD / current_price
+            # Calculate quantity based on CURRENT position size (adjusted for balance)
+            quantity = self.current_position_size_usd / current_price
 
             # Round to appropriate decimal places
             if symbol == 'BTCUSDT':
@@ -278,9 +355,15 @@ class AutonomousCosmicTrader:
             logger.info(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             logger.info("="*60)
 
-            # Get current balance
-            balance = self.get_balance()
-            logger.info(f"💰 Available Balance: {balance:.4f} ETH")
+            # Check for balance changes and adjust strategy
+            usd_balance = self.check_and_adjust_for_balance_change()
+
+            # Check minimum balance threshold
+            if usd_balance < self.MIN_BALANCE_USD:
+                logger.warning(f"⚠️  Balance ${usd_balance:.2f} below minimum ${self.MIN_BALANCE_USD}")
+                logger.warning(f"   Pausing trading until balance increases")
+                logger.warning(f"   Deposit more ETH at asterdex.com to resume trading")
+                return
 
             # Get open positions
             open_positions = self.get_open_positions()

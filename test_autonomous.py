@@ -17,8 +17,8 @@ print("="*60)
 trader = AutonomousCosmicTrader()
 
 print("\n1. Testing balance check...")
-balance = trader.get_balance()
-print(f"   ✓ Balance: {balance:.4f} ETH")
+eth_balance, usd_balance = trader.get_balance()
+print(f"   ✓ Balance: {eth_balance:.4f} ETH (${usd_balance:.2f} USD)")
 
 print("\n2. Testing position check...")
 positions = trader.get_open_positions()

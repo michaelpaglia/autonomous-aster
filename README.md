@@ -68,8 +68,7 @@ POSITION_SIZE_USD = 10
 
 # Risk limits
 MAX_OPEN_POSITIONS = 3
-STOP_LOSS_PERCENT = 5.0    # Auto-close at -5%
-TAKE_PROFIT_PERCENT = 10.0  # Auto-close at +10%
+# NO stop-loss/take-profit! Pure vibes only! 🌙
 ```
 
 ---
@@ -96,10 +95,11 @@ TAKE_PROFIT_PERCENT = 10.0  # Auto-close at +10%
    - **SHORT**: Negative vibes sensed
    - **PASS**: Universe says wait
 
-4. **Risk management** automatically:
-   - Stop-loss at -5% (cosmic protection)
-   - Take-profit at +10% (harvesting cosmic gains)
-   - Max 3 concurrent positions (don't overextend the energy)
+4. **Risk management** by the cosmos:
+   - NO stop-loss or take-profit limits
+   - Grok decides EVERYTHING based on vibes
+   - Exits when the stars say so (could be +50% or -30%, who knows!)
+   - Max 3 concurrent positions (don't overextend cosmic energy)
 
 ---
 
@@ -135,23 +135,43 @@ python check_position.py
 
 ## 🛡️ Safety Features
 
-- **Automatic stop-loss**: Limits losses to 5% per position
-- **Take-profit**: Automatically closes winning positions at +10%
-- **Position limits**: Max 3 open positions to control exposure
+- **Balance awareness**: Auto-adjusts position sizing to available funds
+- **Position limits**: Max 3 open positions (don't overextend cosmic energy)
+- **Minimum balance**: Pauses trading if balance too low
 - **Error recovery**: Auto-restarts on crashes
 - **Logging**: Full audit trail of all decisions and trades
 
+**⚠️ NO STOP-LOSS OR TAKE-PROFIT!** Pure astrology only! The cosmos decides when to exit. 🌙✨
+
 ---
 
-## 💰 Deposit More Funds
+## 💰 Deposit More Funds - Bot Auto-Adjusts!
 
-To increase trading capital:
+**The bot is FULLY balance-aware!** Just deposit and it handles everything.
 
-1. Go to [asterdex.com](https://asterdex.com)
-2. Deposit more ETH to your Futures account
-3. Bot automatically uses available balance
+### How It Works:
 
-**Note:** The bot uses `POSITION_SIZE_USD` per trade, so ensure you have enough margin for your configured position sizes.
+1. **Deposit ETH** at [asterdex.com](https://asterdex.com) Futures account
+2. **Within 30 minutes**, bot detects the deposit:
+   ```
+   💰 🎉 DEPOSIT DETECTED! +$50.00
+   📊 Position size adjusted: $10 → $15
+   ```
+3. **Automatically scales up** position sizes (8% of balance)
+4. **Opens larger trades** with more capital
+5. **No configuration needed** - it just works! ✨
+
+### If Balance Gets Low:
+
+```
+⚠️  Balance $4.50 below minimum $5
+   Pausing trading until balance increases
+   Deposit more ETH to resume
+```
+
+Bot automatically **pauses trading** if balance drops below minimum, then **resumes** when you deposit more!
+
+**See [BALANCE_FEATURES.md](BALANCE_FEATURES.md) for complete details on automatic balance handling.**
 
 ---
 
