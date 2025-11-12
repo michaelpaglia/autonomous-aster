@@ -25,7 +25,7 @@ wheels/
 
 # Environment variables
 .env
-config.py
+# config.py  # Commented out - we're committing config.py now
 
 # Logs
 *.log
