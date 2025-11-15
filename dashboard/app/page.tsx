@@ -40,9 +40,13 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const [statsRes, historyRes] = await Promise.all([
-          fetch('/stats.json'),
-          fetch('/history.json')
+          fetch('/stats.json?t=' + Date.now()), // Cache busting
+          fetch('/history.json?t=' + Date.now())
         ])
+
+        if (!statsRes.ok || !historyRes.ok) {
+          throw new Error('Failed to fetch data')
+        }
 
         const statsData = await statsRes.json()
         const historyData = await historyRes.json()
@@ -52,6 +56,7 @@ export default function Dashboard() {
         setLoading(false)
       } catch (error) {
         console.error('Error fetching data:', error)
+        setLoading(false) // Stop loading even on error
       }
     }
 
@@ -61,12 +66,29 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [])
 
-  if (loading || !stats) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🌙</div>
           <div className="text-xl">Loading cosmic data...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!stats) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <div className="text-xl mb-4">No cosmic data available</div>
+          <div className="text-sm text-gray-400">
+            Run the trading bot to generate stats:<br/>
+            <code className="bg-gray-800 px-2 py-1 rounded mt-2 inline-block">
+              python autonomous_cosmic_trader.py
+            </code>
+          </div>
         </div>
       </div>
     )
