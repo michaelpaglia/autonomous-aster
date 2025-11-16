@@ -415,6 +415,15 @@ Ignore the profit/loss numbers - read the COSMIC ENERGY and planetary alignments
             margin_size = usd_balance * (position_percent / 100.0)
             notional_size = margin_size * leverage
 
+            # Auto-adjust if cosmos chose too much (with 20% buffer for safety)
+            max_usable_balance = usd_balance * 0.80  # Leave 20% buffer
+            if margin_size > max_usable_balance:
+                old_percent = position_percent
+                margin_size = max_usable_balance
+                notional_size = margin_size * leverage
+                position_percent = int((margin_size / usd_balance) * 100)
+                logger.info(f"⚙️  Auto-adjusted: Cosmos wanted {old_percent}% but only {position_percent}% available")
+
             logger.info(f"🌟 Opening {side} position on {symbol}")
             logger.info(f"Cosmic Config:")
             logger.info(f"   Leverage: {leverage}x")
@@ -433,13 +442,26 @@ Ignore the profit/loss numbers - read the COSMIC ENERGY and planetary alignments
                 return False
 
             # Check if we have enough balance for this trade
-            # With leverage, we only need notional/leverage as margin, but add buffer
-            required_margin = notional_size / leverage * 1.5  # 50% buffer for safety
-            if usd_balance < required_margin:
-                logger.warning(f"⚠️  Insufficient balance for this position")
-                logger.warning(f"   Required margin (with buffer): ${required_margin:.2f}")
+            # The margin_size IS what we're risking - make sure we actually have it
+            # Add 20% buffer for fees, price movements, and safety
+            required_balance = margin_size * 1.2
+
+            if usd_balance < required_balance:
+                logger.warning(f"⚠️  Insufficient balance for this position!")
+                logger.warning(f"   Margin needed: ${margin_size:.2f}")
+                logger.warning(f"   With 20% buffer: ${required_balance:.2f}")
                 logger.warning(f"   Available: ${usd_balance:.2f}")
+                logger.warning(f"   Cosmos chose {position_percent}% but we only have enough for ~{int((usd_balance/1.2)/usd_balance*100)}%")
                 logger.warning(f"   Skipping {symbol}...")
+                return False
+
+            # Also check if the notional/leverage matches our margin expectation
+            # (Sanity check - notional should equal margin * leverage)
+            expected_notional = margin_size * leverage
+            if abs(expected_notional - notional_size) > 0.01:
+                logger.error(f"⚠️  Math error in calculation!")
+                logger.error(f"   Expected notional: ${expected_notional:.2f}")
+                logger.error(f"   Calculated notional: ${notional_size:.2f}")
                 return False
 
             # Get current price
