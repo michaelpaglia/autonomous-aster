@@ -490,6 +490,51 @@ Ignore the profit/loss numbers - read the COSMIC ENERGY and planetary alignments
             logger.info(f"Quantity: {quantity} at ${current_price}")
             logger.info(f"Final notional: ${quantity * current_price:.2f}")
 
+            # CRITICAL: Set leverage BEFORE placing order
+            try:
+                logger.info(f"   Setting leverage to {leverage}x for {symbol}...")
+                lev_result = self.dex.change_leverage(symbol=symbol, leverage=leverage)
+                logger.info(f"   ✅ Leverage set: {lev_result.get('leverage')}x (max notional: ${lev_result.get('maxNotionalValue')})")
+            except Exception as e:
+                # If leverage setting fails, try to find max allowed and use that
+                error_msg = str(e)
+                if 'leverage' in error_msg.lower() or 'exceeds' in error_msg.lower():
+                    logger.warning(f"   ⚠️  {leverage}x not allowed for {symbol}, trying lower...")
+
+                    # Try progressively lower leverage
+                    for lower_lev in [15, 10, 5]:
+                        if lower_lev < leverage:
+                            try:
+                                lev_result = self.dex.change_leverage(symbol=symbol, leverage=lower_lev)
+                                leverage = lower_lev  # Update to what actually worked
+                                # Recalculate notional with new leverage
+                                notional_size = margin_size * leverage
+                                quantity = notional_size / current_price
+                                if quantity >= 100:
+                                    quantity = round(quantity, 0)
+                                elif quantity >= 10:
+                                    quantity = round(quantity, 1)
+                                elif quantity >= 1:
+                                    quantity = round(quantity, 2)
+                                elif quantity >= 0.1:
+                                    quantity = round(quantity, 3)
+                                else:
+                                    quantity = round(quantity, 4)
+
+                                logger.info(f"   ✅ Reduced to {leverage}x leverage")
+                                logger.info(f"   Adjusted quantity: {quantity}")
+                                break
+                            except:
+                                continue
+                    else:
+                        # Couldn't set any leverage
+                        logger.error(f"   ❌ Could not set leverage for {symbol}")
+                        logger.error(f"   Error: {error_msg}")
+                        return False
+                else:
+                    logger.error(f"   ❌ Leverage error: {e}")
+                    return False
+
             # Place market order
             order = self.dex.new_order(
                 symbol=symbol,
