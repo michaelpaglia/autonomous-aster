@@ -19,6 +19,7 @@ import config
 import json
 import sys
 import traceback
+import random
 
 # Setup logging with Windows-compatible encoding
 import platform
@@ -419,13 +420,26 @@ Ignore the profit/loss numbers - read the COSMIC ENERGY and planetary alignments
             logger.info(f"   Leverage: {leverage}x")
             logger.info(f"   Position %: {position_percent}%")
             logger.info(f"   Margin: ${margin_size:.2f}")
-            logger.info(f"   Notional: ${notional_size:.2f}")
+            logger.info(f"   Notional (with {leverage}x): ${notional_size:.2f}")
             logger.info(f"Balance: {eth_balance:.4f} ETH (${usd_balance:.2f})")
 
-            # Check minimum notional
+            # CRITICAL: Check minimum notional BEFORE trying to place order
             if notional_size < self.MIN_POSITION_NOTIONAL:
-                logger.warning(f"⚠️  Notional ${notional_size:.2f} below minimum ${self.MIN_POSITION_NOTIONAL}")
-                logger.warning(f"   The cosmos chose too small - skipping trade")
+                logger.warning(f"⚠️  Position too small!")
+                logger.warning(f"   Notional: ${notional_size:.2f} < Min: ${self.MIN_POSITION_NOTIONAL}")
+                logger.warning(f"   Cosmos chose {position_percent}% with {leverage}x leverage")
+                logger.warning(f"   Need higher % or leverage, or more balance")
+                logger.warning(f"   Skipping {symbol} - looking for another opportunity...")
+                return False
+
+            # Check if we have enough balance for this trade
+            # With leverage, we only need notional/leverage as margin, but add buffer
+            required_margin = notional_size / leverage * 1.5  # 50% buffer for safety
+            if usd_balance < required_margin:
+                logger.warning(f"⚠️  Insufficient balance for this position")
+                logger.warning(f"   Required margin (with buffer): ${required_margin:.2f}")
+                logger.warning(f"   Available: ${usd_balance:.2f}")
+                logger.warning(f"   Skipping {symbol}...")
                 return False
 
             # Get current price
@@ -521,7 +535,12 @@ Ignore the profit/loss numbers - read the COSMIC ENERGY and planetary alignments
             if len(open_positions) < self.MAX_POSITIONS:
                 logger.info(f"🔍 Scanning for cosmic opportunities...")
 
-                for symbol in self.SYMBOLS:
+                # Randomize symbol order each cycle - cosmic chaos!
+                symbols_to_check = self.SYMBOLS.copy()
+                random.shuffle(symbols_to_check)
+                logger.info(f"   Shuffled {len(symbols_to_check)} symbols for cosmic randomness")
+
+                for symbol in symbols_to_check:
                     # Skip if we already have a position
                     if any(p['symbol'] == symbol for p in open_positions):
                         continue
@@ -538,9 +557,16 @@ Ignore the profit/loss numbers - read the COSMIC ENERGY and planetary alignments
                         # Check if we still have room
                         open_positions = self.get_open_positions()
                         if len(open_positions) < self.MAX_POSITIONS:
-                            self.open_position(symbol, action, leverage, percent, reason)
-                            time.sleep(2)  # Wait between trades
-                            break  # Only open one position per cycle
+                            # Try to open position - if it succeeds, stop looking
+                            # If it fails (too small, insufficient balance, etc.), keep trying other symbols
+                            success = self.open_position(symbol, action, leverage, percent, reason)
+                            if success:
+                                logger.info(f"✅ Successfully opened position on {symbol}!")
+                                time.sleep(2)  # Wait between trades
+                                break  # Only open one position per cycle
+                            else:
+                                logger.info(f"⚠️  Failed to open {symbol}, trying next symbol...")
+                                # Continue to next symbol in the loop
 
                     time.sleep(1)  # Small delay between symbol checks
 
