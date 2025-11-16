@@ -154,24 +154,35 @@ class AutonomousCosmicTrader:
             return config.TRADING_SYMBOLS
 
     def get_balance(self):
-        """Get available balance in ETH and USD equivalent"""
+        """Get AVAILABLE (free) balance in ETH and USD equivalent"""
         try:
             balance_data = self.dex.balance()
-            # Look for ETH balance (main trading asset)
-            eth_balance = 0.0
+            # Look for ETH balance - use AVAILABLE balance, not total
+            eth_available = 0.0
+            eth_total = 0.0
             for asset in balance_data:
                 if asset['asset'] == 'ETH':
-                    eth_balance = float(asset['balance'])
+                    # availableBalance is what we can actually use for new positions
+                    eth_available = float(asset.get('availableBalance', asset.get('balance', 0)))
+                    eth_total = float(asset.get('balance', 0))
                     break
 
             # Get ETH price to calculate USD value
-            if eth_balance > 0:
+            if eth_available > 0:
                 eth_price_data = self.dex.ticker_price(symbol='ETHUSDT')
                 eth_price = float(eth_price_data['price'])
-                usd_value = eth_balance * eth_price
-                return eth_balance, usd_value
+                usd_available = eth_available * eth_price
+                usd_total = eth_total * eth_price
 
-            return eth_balance, 0.0
+                # Log both for transparency
+                if eth_available != eth_total:
+                    logger.info(f"   Total balance: {eth_total:.4f} ETH (${usd_total:.2f})")
+                    logger.info(f"   Available (free): {eth_available:.4f} ETH (${usd_available:.2f})")
+                    logger.info(f"   Locked in positions: ${usd_total - usd_available:.2f}")
+
+                return eth_available, usd_available
+
+            return eth_available, 0.0
         except Exception as e:
             logger.error(f"Error getting balance: {e}")
             return 0.0, 0.0
