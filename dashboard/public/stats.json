@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-01-15T00:00:00.000Z",
+  "balance": {
+    "eth": 0,
+    "usd": 0,
+    "eth_price": 0
+  },
+  "positions": [],
+  "totalPnL": 0,
+  "openPositions": 0,
+  "leverageRange": "10-20x"
+}
