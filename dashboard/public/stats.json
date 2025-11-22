@@ -1,12 +1,40 @@
 {
-  "timestamp": "2025-01-15T00:00:00.000Z",
+  "timestamp": "2025-11-15T19:40:38.853544",
   "balance": {
-    "eth": 0,
-    "usd": 0,
-    "eth_price": 0
+    "eth": 0.006,
+    "usd": 18.92544,
+    "eth_price": 3154.24
   },
-  "positions": [],
-  "totalPnL": 0,
-  "openPositions": 0,
+  "positions": [
+    {
+      "symbol": "ATOMUSDT",
+      "side": "LONG",
+      "quantity": 60.0,
+      "entryPrice": 2.837,
+      "markPrice": 2.838,
+      "pnl": 0.06,
+      "pnlPercent": 0.035248501938667604
+    },
+    {
+      "symbol": "1000PEPEUSDT",
+      "side": "SHORT",
+      "quantity": 14836.0,
+      "entryPrice": 0.004946,
+      "markPrice": 0.004946,
+      "pnl": 0.0,
+      "pnlPercent": 0.0
+    },
+    {
+      "symbol": "ASTERUSDT",
+      "side": "LONG",
+      "quantity": 4.84,
+      "entryPrice": 1.1376,
+      "markPrice": 1.1144,
+      "pnl": -0.112288,
+      "pnlPercent": -2.039381153305204
+    }
+  ],
+  "totalPnL": -0.052288,
+  "openPositions": 3,
   "leverageRange": "10-20x"
 }

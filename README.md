@@ -1,14 +1,14 @@
-# 🌙 ✨ Autonomous Cosmic Trader ✨ 🌙
+# Autonomous Cosmic Trader
 
 **24/7 Astrology-Based Cryptocurrency Trading Bot**
 
-This bot makes trading decisions based purely on **cosmic vibes, astrological alignments, and spiritual energy**. NO technical analysis. NO fundamentals. ONLY THE UNIVERSE'S GUIDANCE.
+This bot makes trading decisions based purely on cosmic vibes, astrological alignments, and spiritual energy. No technical analysis. No fundamentals. Only the universe's guidance.
 
 Built with Grok Fast (non-reasoning model) for quick, vibe-based decisions powered by xAI.
 
 ---
 
-## 🚀 Quick Start - Get Trading in 3 Steps
+## Quick Start
 
 ### 1. Clone and Setup
 
@@ -21,7 +21,7 @@ chmod +x setup_server.sh
 
 ### 2. Configure Your Credentials
 
-Edit `config.py` with your API keys (already done if you're using the existing config):
+Edit `config.py` with your API keys:
 - AsterDEX API credentials
 - xAI Grok API key
 - Trading parameters (symbols, position size, risk limits)
@@ -48,17 +48,17 @@ source venv/bin/activate
 python autonomous_cosmic_trader.py
 ```
 
-**That's it!** The bot will now trade 24/7 based on cosmic energy. 🌌
+The bot will now trade 24/7 based on cosmic energy.
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Edit `config.py` to customize:
 
 ```python
 # How often to check for trades (in minutes)
-CHECK_INTERVAL_MINUTES = 5  # Cosmic vibes change fast!
+CHECK_INTERVAL_MINUTES = 5
 
 # Symbols to trade
 TRADING_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']
@@ -68,12 +68,11 @@ POSITION_SIZE_USD = 10
 
 # Risk limits
 MAX_OPEN_POSITIONS = 3
-# NO stop-loss/take-profit! Pure vibes only! 🌙
 ```
 
 ---
 
-## 🌙 How It Works
+## How It Works
 
 ### The Cosmic Trading Algorithm
 
@@ -97,13 +96,13 @@ MAX_OPEN_POSITIONS = 3
 
 4. **Risk management** by the cosmos:
    - NO stop-loss or take-profit limits
-   - Grok decides EVERYTHING based on vibes
-   - Exits when the stars say so (could be +50% or -30%, who knows!)
-   - Max 3 concurrent positions (don't overextend cosmic energy)
+   - Grok decides everything based on vibes
+   - Exits when the stars say so
+   - Max 3 concurrent positions
 
 ---
 
-## 📊 Monitoring
+## Monitoring
 
 ### View Logs
 
@@ -133,49 +132,39 @@ python check_position.py
 
 ---
 
-## 🛡️ Safety Features
+## Safety Features
 
 - **Balance awareness**: Auto-adjusts position sizing to available funds
-- **Position limits**: Max 3 open positions (don't overextend cosmic energy)
+- **Position limits**: Max 3 open positions
 - **Minimum balance**: Pauses trading if balance too low
 - **Error recovery**: Auto-restarts on crashes
 - **Logging**: Full audit trail of all decisions and trades
 
-**⚠️ NO STOP-LOSS OR TAKE-PROFIT!** Pure astrology only! The cosmos decides when to exit. 🌙✨
+**WARNING: NO STOP-LOSS OR TAKE-PROFIT!** Pure astrology only. The cosmos decides when to exit.
 
 ---
 
-## 💰 Deposit More Funds - Bot Auto-Adjusts!
+## Automatic Balance Management
 
-**The bot is FULLY balance-aware!** Just deposit and it handles everything.
+The bot is fully balance-aware and automatically adjusts to your account balance.
 
 ### How It Works:
 
 1. **Deposit ETH** at [asterdex.com](https://asterdex.com) Futures account
-2. **Within 30 minutes**, bot detects the deposit:
-   ```
-   💰 🎉 DEPOSIT DETECTED! +$50.00
-   📊 Position size adjusted: $10 → $15
-   ```
+2. **Within 30 minutes**, bot detects the deposit and adjusts position sizes
 3. **Automatically scales up** position sizes (8% of balance)
 4. **Opens larger trades** with more capital
-5. **No configuration needed** - it just works! ✨
+5. **No configuration needed**
 
 ### If Balance Gets Low:
 
-```
-⚠️  Balance $4.50 below minimum $5
-   Pausing trading until balance increases
-   Deposit more ETH to resume
-```
-
-Bot automatically **pauses trading** if balance drops below minimum, then **resumes** when you deposit more!
+Bot automatically pauses trading if balance drops below minimum, then resumes when you deposit more.
 
 **See [BALANCE_FEATURES.md](BALANCE_FEATURES.md) for complete details on automatic balance handling.**
 
 ---
 
-## 🔧 Server Deployment
+## Server Deployment
 
 ### Systemd (Recommended for VPS)
 
@@ -212,7 +201,7 @@ docker-compose restart
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 aster-dex/
@@ -234,9 +223,7 @@ aster-dex/
 
 ---
 
-## 🎯 Trading Philosophy
-
-> *"The universe knows the perfect entry and exit. We just have to listen to the cosmic whispers through Grok's mystical insights."*
+## Trading Philosophy
 
 This bot embodies:
 - **Pure vibes trading**: No charts, no indicators, only astrology
@@ -246,7 +233,7 @@ This bot embodies:
 
 ---
 
-## 🔐 Security
+## Security
 
 - `config.py` contains your API keys - **NEVER commit this to GitHub**
 - Already in `.gitignore` for protection
@@ -255,7 +242,7 @@ This bot embodies:
 
 ---
 
-## 📈 Performance Tracking
+## Performance Tracking
 
 The bot logs all trades to `cosmic_trader.log`:
 - Entry/exit prices
@@ -263,11 +250,11 @@ The bot logs all trades to `cosmic_trader.log`:
 - PnL for closed positions
 - Balance updates
 
-Parse logs for performance analysis or just vibe with it. 🌙
+Parse logs for performance analysis.
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 **Bot not starting?**
 ```bash
@@ -286,11 +273,10 @@ python test_official_connector.py
 **Position stuck?**
 - Check stop-loss/take-profit settings
 - Manually close via `check_position.py`
-- The universe works in mysterious ways 🌌
 
 ---
 
-## 🌟 Advanced Usage
+## Advanced Usage
 
 ### Change Trading Interval
 
@@ -324,9 +310,9 @@ POSITION_SIZE_USD = 20  # $20 per position
 
 ---
 
-## 🌌 Cosmic Disclaimer
+## Disclaimer
 
-This bot makes trading decisions based on **astrology and vibes**. It's experimental, spiritual, and meant to explore algorithmic trading through a mystical lens.
+This bot makes trading decisions based on astrology and vibes. It's experimental, spiritual, and meant to explore algorithmic trading through a mystical lens.
 
 **USE AT YOUR OWN RISK**
 - Cryptocurrency trading is highly risky
@@ -334,16 +320,14 @@ This bot makes trading decisions based on **astrology and vibes**. It's experime
 - Only trade with funds you can afford to lose
 - The universe is unpredictable (but so are the markets)
 
-*May the stars guide your trades to the moon* 🚀🌕
-
 ---
 
-## 📜 License
+## License
 
 MIT License - Trade freely, vibe responsibly
 
-## 🙏 Credits
+## Credits
 
 - **AsterDEX**: Decentralized perpetual futures exchange
 - **xAI Grok**: The cosmic AI making all the calls
-- **The Universe**: Ultimate trading advisor 🌙✨
+- **The Universe**: Ultimate trading advisor
