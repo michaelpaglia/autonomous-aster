@@ -1,6 +1,10 @@
 """
 Check available trading symbols
 """
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+
 from asterdex_client import AsterDEXClient
 import config
 

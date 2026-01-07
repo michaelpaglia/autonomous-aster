@@ -2,6 +2,9 @@
 Test actual trade opening and closing with cosmic decision making
 """
 import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+
 import time
 from aster.rest_api import Client
 from grok_client import GrokClient

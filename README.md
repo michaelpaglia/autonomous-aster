@@ -1,104 +1,276 @@
 # Autonomous Cosmic Trader
 
-**24/7 Astrology-Based Cryptocurrency Trading Bot**
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![AsterDEX](https://img.shields.io/badge/Exchange-AsterDEX-purple.svg)](https://asterdex.com)
+[![xAI Grok](https://img.shields.io/badge/AI-xAI%20Grok-orange.svg)](https://x.ai)
 
-This bot makes trading decisions based purely on cosmic vibes, astrological alignments, and spiritual energy. No technical analysis. No fundamentals. Only the universe's guidance.
+An autonomous cryptocurrency trading bot for [AsterDEX](https://asterdex.com) that makes decisions using xAI's Grok model with an astrology-themed decision framework. The bot operates 24/7, analyzing market conditions through a unique "cosmic vibes" lens.
 
-Built with Grok Fast (non-reasoning model) for quick, vibe-based decisions powered by xAI.
+## Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Deployment](#deployment)
+- [Monitoring](#monitoring)
+- [API Reference](#api-reference)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ---
 
-## Quick Start
+## Features
 
-### 1. Clone and Setup
+- **Autonomous 24/7 Trading** - Runs continuously with configurable check intervals
+- **AI-Powered Decisions** - Uses xAI Grok for market analysis and trade decisions
+- **Multi-Symbol Support** - Trade 230+ perpetual futures pairs simultaneously
+- **Balance-Aware Sizing** - Automatically adjusts position sizes based on available capital
+- **Real-Time Dashboard** - Next.js dashboard for monitoring trades and performance
+- **Multiple Deployment Options** - Systemd, Docker, or manual execution
+- **Comprehensive Logging** - Full audit trail of all decisions and trades
+
+---
+
+## Prerequisites
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Python | 3.11+ | Required |
+| Node.js | 18+ | For dashboard only |
+| AsterDEX Account | - | [Sign up](https://asterdex.com) |
+| xAI API Key | - | [Get key](https://x.ai) |
+
+---
+
+## Installation
+
+### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
-cd aster-dex
-chmod +x setup_server.sh
-./setup_server.sh
+git clone https://github.com/michaelpaglia/aster-trading-bot.git
+cd aster-trading-bot
 ```
 
-### 2. Configure Your Credentials
-
-Edit `config.py` with your API keys:
-- AsterDEX API credentials
-- xAI Grok API key
-- Trading parameters (symbols, position size, risk limits)
-
-### 3. Deposit Funds & Start Trading
-
-**Deposit ETH to your AsterDEX main wallet:**
-- Login to [asterdex.com](https://asterdex.com)
-- Navigate to your Futures account
-- Deposit ETH (used as margin for trading)
-
-**Start the bot:**
+### 2. Create Virtual Environment
 
 ```bash
-# Option 1: Run with systemd (auto-restarts)
-sudo systemctl start cosmic-trader
-sudo systemctl status cosmic-trader
-
-# Option 2: Run with Docker
-docker-compose up -d
-
-# Option 3: Run manually
-source venv/bin/activate
-python autonomous_cosmic_trader.py
+python3.11 -m venv venv
+source venv/bin/activate  # Linux/macOS
+# or
+.\venv\Scripts\activate   # Windows
 ```
 
-The bot will now trade 24/7 based on cosmic energy.
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+pip install git+https://github.com/asterdex/aster-connector-python.git
+```
+
+### 4. Configure Environment
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your credentials:
+
+```env
+# AsterDEX API Configuration
+ASTERDEX_BASE_URL=https://fapi.asterdex.com
+ASTERDEX_MAIN_WALLET=your_main_wallet_address
+ASTERDEX_API_WALLET=your_api_wallet_address
+ASTERDEX_PRIVATE_KEY=your_private_key
+ASTERDEX_API_KEY=your_api_key
+ASTERDEX_API_SECRET=your_api_secret
+
+# xAI Grok Configuration
+GROK_API_KEY=your_grok_api_key
+GROK_BASE_URL=https://api.x.ai/v1
+GROK_MODEL=grok-4-fast-non-reasoning
+
+# Trading Configuration
+CHECK_INTERVAL_MINUTES=10
+USE_ALL_SYMBOLS=True
+MAX_OPEN_POSITIONS=3
+MIN_BALANCE_USD=1
+```
+
+### 5. Verify Installation
+
+```bash
+python tests/test_connections.py
+```
 
 ---
 
 ## Configuration
 
-Edit `config.py` to customize:
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CHECK_INTERVAL_MINUTES` | How often to check for trades | `10` |
+| `USE_ALL_SYMBOLS` | Trade all available symbols | `True` |
+| `MAX_OPEN_POSITIONS` | Maximum concurrent positions | `3` |
+| `MIN_BALANCE_USD` | Minimum balance to continue trading | `1` |
+| `LEVERAGE_MIN` | Minimum leverage multiplier | `10` |
+| `LEVERAGE_MAX` | Maximum leverage multiplier | `20` |
+| `MIN_POSITION_NOTIONAL` | Minimum position value (USD) | `5.5` |
+
+### Manual Symbol Selection
+
+To trade specific symbols only, set `USE_ALL_SYMBOLS=False` and edit `src/config.py`:
 
 ```python
-# How often to check for trades (in minutes)
-CHECK_INTERVAL_MINUTES = 5
-
-# Symbols to trade
-TRADING_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']
-
-# Position size per trade (USD)
-POSITION_SIZE_USD = 10
-
-# Risk limits
-MAX_OPEN_POSITIONS = 3
+TRADING_SYMBOLS = [
+    'BTCUSDT',
+    'ETHUSDT',
+    'SOLUSDT',
+]
 ```
 
 ---
 
-## How It Works
+## Usage
 
-### The Cosmic Trading Algorithm
+### Start the Bot
 
-1. **Every 5 minutes** (configurable), the bot:
-   - Checks existing positions
-   - Asks Grok about cosmic vibes for each position
-   - Closes positions if stop-loss/take-profit hit or if cosmos says so
-   - Scans for new opportunities across configured symbols
+```bash
+# Recommended: Use the main entry point
+python main.py
 
-2. **For each potential trade**, Grok analyzes:
-   - Current moon phase and energy
-   - Planetary retrogrades (especially Mercury)
-   - Astrological alignments
-   - Spiritual vibes and gut feelings
-   - Chart patterns as celestial constellations
+# Or activate venv first
+source venv/bin/activate
+python main.py
+```
 
-3. **Decisions are made** purely on astrology:
-   - **LONG**: Positive cosmic energy detected
-   - **SHORT**: Negative vibes sensed
-   - **PASS**: Universe says wait
+### Run Tests
 
-4. **Risk management** by the cosmos:
-   - NO stop-loss or take-profit limits
-   - Grok decides everything based on vibes
-   - Exits when the stars say so
-   - Max 3 concurrent positions
+```bash
+# Test API connections
+python tests/test_connections.py
+
+# Test balance check
+python tests/test_balance.py
+
+# Validate bot configuration
+python tests/validate_bot.py
+```
+
+### Utility Scripts
+
+```bash
+# List available trading symbols
+python scripts/list_symbols.py
+
+# Check current positions
+python scripts/check_position.py
+
+# Run demo
+python scripts/demo.py
+```
+
+---
+
+## Project Structure
+
+```
+aster-dex/
+├── src/                          # Core application modules
+│   ├── __init__.py
+│   ├── autonomous_cosmic_trader.py   # Main trading bot
+│   ├── asterdex_client.py            # AsterDEX API client
+│   ├── grok_client.py                # xAI Grok client
+│   ├── config.py                     # Configuration loader
+│   ├── stats_exporter.py             # Dashboard stats export
+│   └── trading_bot.py                # Trading bot utilities
+│
+├── tests/                        # Test files
+│   ├── test_connections.py
+│   ├── test_balance.py
+│   ├── test_autonomous.py
+│   └── ...
+│
+├── scripts/                      # Utility scripts
+│   ├── setup_server.sh               # Server setup script
+│   ├── sync_stats.sh                 # Stats sync for dashboard
+│   ├── list_symbols.py
+│   ├── check_position.py
+│   └── demo.py
+│
+├── deploy/                       # Deployment configurations
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── cosmic-trader.service         # Systemd service
+│
+├── docs/                         # Documentation
+│   ├── DEPLOYMENT.md
+│   ├── BALANCE_FEATURES.md
+│   ├── SYMBOLS_GUIDE.md
+│   ├── CRON_SETUP.md
+│   └── WINDOWS_SETUP.md
+│
+├── dashboard/                    # Next.js monitoring dashboard
+│   ├── app/
+│   ├── public/
+│   └── package.json
+│
+├── main.py                       # Application entry point
+├── requirements.txt              # Python dependencies
+├── .env.example                  # Environment template
+└── LICENSE
+```
+
+---
+
+## Deployment
+
+### Option 1: Systemd (Recommended for VPS)
+
+```bash
+# Run setup script
+cd scripts
+chmod +x setup_server.sh
+./setup_server.sh
+
+# Control the service
+sudo systemctl start cosmic-trader
+sudo systemctl stop cosmic-trader
+sudo systemctl restart cosmic-trader
+sudo systemctl status cosmic-trader
+
+# Enable auto-start on boot
+sudo systemctl enable cosmic-trader
+```
+
+### Option 2: Docker
+
+```bash
+cd deploy
+
+# Build and start
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+### Option 3: Manual
+
+```bash
+source venv/bin/activate
+python main.py
+```
+
+For detailed deployment instructions, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
@@ -117,217 +289,141 @@ journalctl -u cosmic-trader -f
 docker-compose logs -f
 ```
 
+### Dashboard
+
+The project includes a Next.js dashboard for real-time monitoring:
+
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+
+Access at `http://localhost:3000`
+
+For Vercel deployment, see [dashboard/VERCEL_SETUP.md](dashboard/VERCEL_SETUP.md).
+
 ### Check Status
 
 ```bash
-# Systemd status
+# Systemd
 sudo systemctl status cosmic-trader
 
-# Docker status
+# Docker
 docker-compose ps
 
-# Check positions manually
-python check_position.py
+# Manual position check
+python scripts/check_position.py
 ```
 
 ---
 
-## Safety Features
+## API Reference
 
-- **Balance awareness**: Auto-adjusts position sizing to available funds
-- **Position limits**: Max 3 open positions
-- **Minimum balance**: Pauses trading if balance too low
-- **Error recovery**: Auto-restarts on crashes
-- **Logging**: Full audit trail of all decisions and trades
+### AsterDEXClient
 
-**WARNING: NO STOP-LOSS OR TAKE-PROFIT!** Pure astrology only. The cosmos decides when to exit.
+```python
+from src.asterdex_client import AsterDEXClient
 
----
+client = AsterDEXClient(
+    base_url="https://fapi.asterdex.com",
+    api_wallet="0x...",
+    private_key="0x..."
+)
 
-## Automatic Balance Management
+# Get balance
+balance = client.get_balance()
 
-The bot is fully balance-aware and automatically adjusts to your account balance.
+# Get positions
+positions = client.get_position_risk()
 
-### How It Works:
-
-1. **Deposit ETH** at [asterdex.com](https://asterdex.com) Futures account
-2. **Within 30 minutes**, bot detects the deposit and adjusts position sizes
-3. **Automatically scales up** position sizes (8% of balance)
-4. **Opens larger trades** with more capital
-5. **No configuration needed**
-
-### If Balance Gets Low:
-
-Bot automatically pauses trading if balance drops below minimum, then resumes when you deposit more.
-
-**See [BALANCE_FEATURES.md](BALANCE_FEATURES.md) for complete details on automatic balance handling.**
-
----
-
-## Server Deployment
-
-### Systemd (Recommended for VPS)
-
-```bash
-# Setup during installation
-./setup_server.sh
-# Choose 'y' when asked about systemd
-
-# Control the service
-sudo systemctl start cosmic-trader   # Start
-sudo systemctl stop cosmic-trader    # Stop
-sudo systemctl restart cosmic-trader # Restart
-sudo systemctl status cosmic-trader  # Check status
-
-# Enable auto-start on boot
-sudo systemctl enable cosmic-trader
+# Place order
+order = client.place_order(
+    symbol="BTCUSDT",
+    side="BUY",
+    quantity=0.001
+)
 ```
 
-### Docker (Recommended for containers)
+### GrokClient
 
-```bash
-# Start
-docker-compose up -d
+```python
+from src.grok_client import GrokClient
 
-# Stop
-docker-compose down
+grok = GrokClient(
+    api_key="your_api_key",
+    base_url="https://api.x.ai/v1",
+    model="grok-4-fast-non-reasoning"
+)
 
-# View logs
-docker-compose logs -f
-
-# Restart
-docker-compose restart
+# Get trading decision
+decision = grok.get_trading_decision(market_data)
 ```
-
----
-
-## Project Structure
-
-```
-aster-dex/
-├── autonomous_cosmic_trader.py  # Main 24/7 bot
-├── grok_client.py              # Grok API client (astrology prompts)
-├── config.py                   # Configuration (API keys, settings)
-├── requirements.txt            # Python dependencies
-├── setup_server.sh            # Auto-setup script
-├── cosmic-trader.service      # Systemd service file
-├── Dockerfile                 # Docker container
-├── docker-compose.yml         # Docker Compose config
-└── cosmic_trader.log         # Trading logs
-
-# Test/Utility Scripts
-├── check_position.py          # Check current positions
-├── test_official_connector.py # Test API connection
-└── simple_cosmic_test.py     # Get cosmic vibes without trading
-```
-
----
-
-## Trading Philosophy
-
-This bot embodies:
-- **Pure vibes trading**: No charts, no indicators, only astrology
-- **Mellow approach**: Chill, spiritual, trusting the universe
-- **Cosmic timing**: Mercury retrograde = caution, Full moon = peak energy
-- **Mystical risk management**: Stop-losses are cosmic protection spells
-
----
-
-## Security
-
-- `config.py` contains your API keys - **NEVER commit this to GitHub**
-- Already in `.gitignore` for protection
-- Use environment variables for production if preferred
-- API keys have trading permissions - keep them secure
-
----
-
-## Performance Tracking
-
-The bot logs all trades to `cosmic_trader.log`:
-- Entry/exit prices
-- Cosmic reasoning for each decision
-- PnL for closed positions
-- Balance updates
-
-Parse logs for performance analysis.
 
 ---
 
 ## Troubleshooting
 
-**Bot not starting?**
+### Bot not starting?
+
 ```bash
 # Check logs
 tail -f cosmic_trader.log
 
 # Test API connections
-python test_official_connector.py
+python tests/test_connections.py
+
+# Verify config
+python tests/validate_bot.py
 ```
 
-**No trades happening?**
-- Check if you have sufficient balance
-- Verify `POSITION_SIZE_USD` is set appropriately
-- Cosmos might be saying "PASS" - check logs
+### No trades happening?
 
-**Position stuck?**
-- Check stop-loss/take-profit settings
-- Manually close via `check_position.py`
+1. Verify sufficient balance in AsterDEX account
+2. Check `MIN_BALANCE_USD` setting
+3. Review logs for "PASS" decisions (bot waiting for better conditions)
 
----
+### Import errors?
 
-## Advanced Usage
+Ensure you're running from the project root:
 
-### Change Trading Interval
-
-Edit `config.py`:
-```python
-CHECK_INTERVAL_MINUTES = 1  # Check every minute (ultra responsive!)
-# or
-CHECK_INTERVAL_MINUTES = 5  # Every 5 minutes (balanced)
-# or
-CHECK_INTERVAL_MINUTES = 15  # Every 15 minutes (slower)
+```bash
+cd /path/to/aster-dex
+python main.py
 ```
 
-### Add More Symbols
+### Connection issues?
 
-Edit `config.py`:
-```python
-TRADING_SYMBOLS = [
-    'BTCUSDT',
-    'ETHUSDT',
-    'SOLUSDT',
-    'BNBUSDT',  # Add more here
-]
-```
+```bash
+# Test AsterDEX API
+python tests/test_official_connector.py
 
-### Adjust Position Sizes
-
-Edit `config.py`:
-```python
-POSITION_SIZE_USD = 20  # $20 per position
+# Check network
+curl -I https://fapi.asterdex.com
 ```
 
 ---
 
-## Disclaimer
+## Safety Considerations
 
-This bot makes trading decisions based on astrology and vibes. It's experimental, spiritual, and meant to explore algorithmic trading through a mystical lens.
+> **Warning**: This bot trades with real funds. Use at your own risk.
 
-**USE AT YOUR OWN RISK**
-- Cryptocurrency trading is highly risky
-- Past cosmic alignments don't guarantee future gains
-- Only trade with funds you can afford to lose
-- The universe is unpredictable (but so are the markets)
+- Start with small amounts to test
+- Monitor the bot regularly
+- Set appropriate `MAX_OPEN_POSITIONS` limits
+- Keep API keys secure and never commit them to version control
+- The `.env` file is gitignored for your protection
 
 ---
 
 ## License
 
-MIT License - Trade freely, vibe responsibly
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Credits
+---
 
-- **AsterDEX**: Decentralized perpetual futures exchange
-- **xAI Grok**: The cosmic AI making all the calls
-- **The Universe**: Ultimate trading advisor
+## Acknowledgments
+
+- [AsterDEX](https://asterdex.com) - Decentralized perpetual futures exchange
+- [xAI](https://x.ai) - Grok AI model provider
+- [aster-connector-python](https://github.com/asterdex/aster-connector-python) - Official AsterDEX Python SDK

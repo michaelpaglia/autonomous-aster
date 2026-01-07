@@ -2,12 +2,14 @@ version: '3.8'
 
 services:
   cosmic-trader:
-    build: .
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
     container_name: cosmic-trader
     restart: unless-stopped
     volumes:
-      - ./cosmic_trader.log:/app/cosmic_trader.log
-      - ./config.py:/app/config.py
+      - ../cosmic_trader.log:/app/cosmic_trader.log
+      - ../.env:/app/.env
     environment:
       - TZ=UTC
     logging:

@@ -10,12 +10,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install git+https://github.com/asterdex/aster-connector-python.git
 
 # Copy application files
-COPY config.py .
-COPY grok_client.py .
-COPY autonomous_cosmic_trader.py .
+COPY src/ ./src/
+COPY main.py .
+COPY .env .
 
 # Create log directory
 RUN mkdir -p /app/logs
 
 # Run the bot
-CMD ["python", "-u", "autonomous_cosmic_trader.py"]
+CMD ["python", "-u", "main.py"]

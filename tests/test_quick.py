@@ -2,6 +2,10 @@
 Quick test to verify autonomous trader can connect
 Uses the same client as autonomous_cosmic_trader.py
 """
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+
 from aster.rest_api import Client
 import config
 import platform

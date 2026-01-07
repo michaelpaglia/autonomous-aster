@@ -1,6 +1,10 @@
 """
 Simple cosmic vibe check using basic ticker data
 """
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+
 from asterdex_client import AsterDEXClient
 from grok_client import GrokClient
 import config
