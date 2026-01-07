@@ -51,8 +51,8 @@ An autonomous cryptocurrency trading bot for [AsterDEX](https://asterdex.com) th
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/michaelpaglia/aster-trading-bot.git
-cd aster-trading-bot
+git clone https://github.com/michaelpaglia/autonomous-aster.git
+cd autonomous-aster
 ```
 
 ### 2. Create Virtual Environment
